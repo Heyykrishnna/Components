@@ -1,4 +1,4 @@
-import React from 'react'
+import { motion } from 'framer-motion';
 
 export const Cards = () => {
     const cards = [
@@ -50,5 +50,21 @@ export const Cards = () => {
                 rotate: 12,
             }
         }
-    ]
+    ];
+
+    return (
+        <div className="max-w-5xl mx-auto w-full h-160 relative">
+
+            {cards.map((card) => (
+                <motion.div key={card.title}>
+                    <motion.button className="w-80 p-8 absolute inset-0 flex flex-col justify-center items-start">
+                        {card.skeleton}
+                        <h2>{card.title}</h2>
+                        <p>{card.description}</p>
+                    </motion.button>
+                </motion.div>
+
+            ))}
+        </div>
+    )
 }
