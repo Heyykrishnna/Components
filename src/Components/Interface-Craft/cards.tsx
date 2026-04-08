@@ -1,13 +1,26 @@
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import React, { useState } from 'react';
+
+type Cards = {
+    title: string;
+    description: string;
+    skeleton: React.ReactNode;
+    className: string;
+    config: {
+        y: number;
+        x: number;
+        rotate: number;
+    }
+}
 
 export const Cards = () => {
     const cards = [
         {
             title: 'Working Knowledge',
             description: 'Frameworks, principles, and models Ive learned and developed that you will be able to immediately apply to your practice.',
-            skeleton: <div className="h-50 w-55 border rounded-lg bg-gradient-to-r from-orange-600 to-orange-600/60"></div>,
-            className: 'bg-orange-500',
+            skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-orange-600 to-orange-600/60"></div>,
+            className: 'bg-orange-500 [&_h2]:text-white',
             config: {
                 y: 200,
                 x: 60,
@@ -18,8 +31,8 @@ export const Cards = () => {
         {
             title: 'Strategy Sessions',
             description: 'Practical methods for planning product decisions, setting clear priorities, and aligning teams around measurable outcomes.',
-            skeleton: <div className="h-50 w-55 border rounded-lg bg-gradient-to-r from-neutral-300 to-neutral-300/60"></div>,
-            className: 'bg-stone-200',
+            skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-neutral-300 to-neutral-300/60"></div>,
+            className: 'bg-stone-200 &_h2]:text-white',
             config: {
                 x: 200,
                 y: 220,
@@ -30,8 +43,8 @@ export const Cards = () => {
         {
             title: 'Execution Toolkit',
             description: 'Step-by-step workflows, templates, and repeatable systems that make complex projects easier to ship with confidence.',
-            skeleton: <div className="h-50 w-55 border rounded-lg bg-gradient-to-r from-blue-600 to-blue-600/60"></div>,
-            className: 'bg-blue-500',
+            skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-blue-600 to-blue-600/60"></div>,
+            className: 'bg-blue-500 [&_h2]:text-white',
             config: {
                 x: 400,
                 y: 280,
@@ -42,8 +55,8 @@ export const Cards = () => {
         {
             title: 'Growth Insights',
             description: 'Actionable ideas for improving engagement, identifying opportunities, and building long-term momentum in your work.',
-            skeleton: <div className="h-50 w-55 border rounded-lg bg-gradient-to-r from-purple-600 to-purple-600/60"></div>,
-            className: 'bg-purple-500',
+            skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-purple-600 to-purple-600/60"></div>,
+            className: 'bg-purple-500 [&_h2]:text-white',
             config: {
                 x: 580,
                 y: 220,
@@ -54,16 +67,18 @@ export const Cards = () => {
         {
             title: 'Growth Insights',
             description: 'Actionable ideas for improving engagement, identifying opportunities, and building long-term momentum in your work.',
-            skeleton: <div className="h-50 w-55 border rounded-lg bg-gradient-to-r from-rose-600 to-rose-600/60"></div>,
-            className: 'bg-rose-500',
+            skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-rose-600 to-rose-600/60"></div>,
+            className: 'bg-rose-500 [&_h2]:text-white',
             config: {
                 x: 740,
                 y: 320,
                 zIndex: 4,
-                rotate: 12,
+                rotate: 3,
             }
         }
     ];
+
+    const [active, setActive] = useState<Cards | null>(null);
 
     return (
         <div className="max-w-5xl mx-auto w-full h-160 relative">
@@ -71,6 +86,13 @@ export const Cards = () => {
             {cards.map((card) => (
                 <motion.div key={card.title}>
                     <motion.button
+                    onClick={() => setActive(card)}
+                    initial = {{
+                        y: 400,
+                        x: 0,
+                        filter: 'blur(10px)',
+                        scale: 0
+                    }}
                     animate = {{
                         y: card.config.y,
                         x: card.config.x,
@@ -78,9 +100,19 @@ export const Cards = () => {
                         scale: 1,
                         width: 320,
                         height: 400,
+                        filter: 'blur(0px)'
+                    }}
+                    whileHover={{
+                        scale: 1.05
+                    }}
+                    transition={{
+                        type: 'spring',
+                        stiffness: 180,
+                        damping: 15,
+                        duration: 0.6
                     }}
                     className={cn(
-                        "w-80 p-8 absolute rounded-2xl inset-0 flex flex-col justify-between items-start overflow-hidden", 
+                        "w-80 p-8 absolute rounded-2xl inset-0 flex flex-col justify-between items-start overflow-hidden cursor-pointer", 
                         card.className)}
                     >
                         {card.skeleton}
