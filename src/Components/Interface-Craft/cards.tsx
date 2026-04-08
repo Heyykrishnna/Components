@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type Cards = {
     title: string;
@@ -10,6 +10,7 @@ type Cards = {
     config: {
         y: number;
         x: number;
+        zIndex: number;
         rotate: number;
     }
 }
@@ -32,7 +33,7 @@ export const Cards = () => {
             title: 'Strategy Sessions',
             description: 'Practical methods for planning product decisions, setting clear priorities, and aligning teams around measurable outcomes.',
             skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-neutral-300 to-neutral-300/60"></div>,
-            className: 'bg-stone-200 &_h2]:text-white',
+            className: 'bg-stone-200 [&_h2]:text-black',
             config: {
                 x: 200,
                 y: 220,
@@ -65,7 +66,7 @@ export const Cards = () => {
             }
         },
         {
-            title: 'Growth Insights',
+            title: 'Random Stuff',
             description: 'Actionable ideas for improving engagement, identifying opportunities, and building long-term momentum in your work.',
             skeleton: <div className="h-50 w-55 rounded-lg bg-gradient-to-r from-rose-600 to-rose-600/60"></div>,
             className: 'bg-rose-500 [&_h2]:text-white',
@@ -79,9 +80,33 @@ export const Cards = () => {
     ];
 
     const [active, setActive] = useState<Cards | null>(null);
+    const ref = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)){
+                setActive(null)
+            }
+        }
+        document.addEventListener('mousedown', handleOutsideClick);
+        return (() => {
+            document.removeEventListener('mousedown', handleOutsideClick)
+        })
+    }, []);
+    
+    const isCardActive = () => {
+        return active?.title;
+    }
+
+    const isCurrentActive = (card: Cards) => {
+        return active?.title === card.title;
+    }
+    
     return (
-        <div className="max-w-5xl mx-auto w-full h-160 relative">
+        <div
+            ref={ref}
+            className="max-w-5xl mx-auto w-full min-h-[700px] relative flex items-center justify-center overflow-visible px-16"
+        >
 
             {cards.map((card) => (
                 <motion.div key={card.title}>
@@ -94,25 +119,28 @@ export const Cards = () => {
                         scale: 0
                     }}
                     animate = {{
-                        y: card.config.y,
-                        x: card.config.x,
-                        rotate: card.config.rotate,
-                        scale: 1,
-                        width: 320,
-                        height: 400,
+                        y: isCurrentActive(card) ? 0 : (isCardActive() ? 400 : card.config.y),
+                        x: isCurrentActive(card) ? 320 : (isCardActive() ? card.config.x * 0.5 + 200 : card.config.x),
+                        rotate: isCurrentActive(card) ? 0 : (isCardActive() ? card.config.rotate * 0.4 : card.config.rotate),
+                        scale: isCurrentActive(card) ? 1 : (isCardActive() ? 0.6 : 1),
+                        width: isCurrentActive(card) ? 400 : 320,
+                        height: isCurrentActive(card) ? 500 : 400,
                         filter: 'blur(0px)'
                     }}
                     whileHover={{
-                        scale: 1.05
-                    }}
+                        scale: isCurrentActive(card) ? 1 : (isCardActive() ? 0.6 : 1.05)
+                    }}  
                     transition={{
                         type: 'spring',
                         stiffness: 180,
                         damping: 15,
                         duration: 0.6
                     }}
+                    style={{
+                        zIndex: isCurrentActive(card) ? 50 : card.config.zIndex
+                    }}
                     className={cn(
-                        "w-80 p-8 absolute rounded-2xl inset-0 flex flex-col justify-between items-start overflow-hidden cursor-pointer", 
+                        "w-80 p-8 absolute right-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl flex flex-col justify-between items-start overflow-hidden cursor-pointer shadow-2xl shadow-black/25 ring-1 ring-black/10",
                         card.className)}
                     >
                         {card.skeleton}
