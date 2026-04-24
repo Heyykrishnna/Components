@@ -12,10 +12,27 @@ export default function HeroSection() {
 
 
         <div className="p-10 size-full">
-            <div className="p-10 relative size-full">
+            <div className="p-10 relative size-full flex flex-col justify-between">
+                <img src="https://wallpapercave.com/wp/wp4140937.jpg" className="absolute inset-0 object-cover size-full mask-radial-from-50% mask-b-from-20% mask-t-from-90% select-none pointer-events-none" />
+                <nav className="flex items-center justify-between z-20">
+                    <div className="flex items-center gap-6">
+                        <h2 className="tracking-tighter font-medium bg-clip-text text-transparent bg-linear-to-b from-blue-400 to-blue-800 text-lg font-bold text-shadow-lg text-shadow-blue-500/10 px-4">Elysiar</h2>
+                        <a href="#" className="text-neutral-700 text-xs">Features</a>
+                        <a href="#" className="text-neutral-700 text-xs">Pricing</a>
+                        <a href="#" className="text-neutral-700 text-xs">Signup</a>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="px-4 py-2 rounded-md bg-linear-to-t from-neutral-800 to-neutral-600 text-white text-xs text-shadow-lg text-shadow-black/2">Signup</button>
+                        <button className="px-4 py-2 rounded-md bg-linear-to-t from-blue-700 to-blue-400 text-white text-xs text-shadow-lg text-shadow-black/2">Log In</button>
+                    </div>
+                </nav>
+                <div className="flex flex-col max-w-4xl pb-10">
+                    <h1 className="tracking-tight text-neutral-950 text-7xl font-medium">
+                        Build a Better Tomorrow and Create a Better Future
+                    </h1>
+                </div>
                 <Lines className="mask-b-from-20% absolute inset-x-0 top-0"/>
                 <Lines className="mask-t-from-20% absolute inset-x-0 bottom-0"/>
-            Hero Section
             </div>
         </div>
       </div>
