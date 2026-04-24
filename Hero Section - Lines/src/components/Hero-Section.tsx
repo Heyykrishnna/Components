@@ -12,7 +12,11 @@ export default function HeroSection() {
 
 
         <div className="p-10 size-full">
+            <div className="p-10 relative size-full">
+                <Lines className="mask-b-from-20% absolute inset-x-0 top-0"/>
+                <Lines className="mask-t-from-20% absolute inset-x-0 bottom-0"/>
             Hero Section
+            </div>
         </div>
       </div>
     </section>
@@ -33,5 +37,11 @@ const VerticalScale = ({className} : {className?: string}) => {
     <div
         className={cn("w-10 h-full bg-[repeating-linear-gradient(315deg,_#d4d4d4_0px,_#d4d4d4_1px,_transparent_1px,_transparent_10px)] bg-[length:14px_14px] border-x border-[var(--pattern))]", className)}
       />
+    )
+}
+
+const Lines = ({className} : {className?: string}) => {
+    return(
+        <div className={cn("h-14 w-full bg-[repeating-linear-gradient(to_bottom,#d4d4d4_0,#d4d4d4_1px,transparent_1px,transparent_0.5rem)]", className)} />
     )
 }
