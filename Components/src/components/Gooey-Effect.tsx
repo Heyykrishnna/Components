@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react';
+import { collectMotionValues, motion, scale } from 'motion/react';
 import { SearchIcon } from 'lucide-react';
 
 const GooeyEffect = () => {
@@ -16,6 +16,17 @@ const GooeyEffect = () => {
     expanded: {
       width: 200,
       marginLeft: 50
+    }
+  }
+
+  const iconBubbleVariants = {
+    collapsed: {
+      scale: 0,
+      opacity: 0
+    },
+    expanded: {
+      scale: 1,
+      opacity: 1
     }
   }
 
@@ -42,7 +53,7 @@ const GooeyEffect = () => {
                 <button
                 onClick={() => setIsExpanded(true)}
                 className="h-10 px-4 w-full cursor-pointer items-center justify-center flex gap-2 rounded-full bg-black text-white font-medium text-sm">
-                    <SearchIcon />
+                    <SearchIcon className="text-white"/>
 
                     <input 
                     ref={inputRef}
@@ -53,6 +64,14 @@ const GooeyEffect = () => {
                     </input>
                 </button>
 
+            </motion.div>
+
+            <motion.div 
+            variants={iconBubbleVariants}
+            initial="collapsed"
+            animate={isExpanded ? "expanded" : "collapsed"}
+            className="absolute top-1/2 left-0 size-10 bg-black rounded-full -translate-y-1/2 items-center justify-center flex">
+              <SearchIcon className="size-4 text-white"/>
             </motion.div>
 
         </div>
