@@ -1,10 +1,10 @@
-import React from 'react'
-import HeroSection from './components/Hero-Section'
+// import HeroSection from './components/Hero-Section'
+import GooeyEffect from './components/Gooey-Effect'
 
 const App = () => {
   return (
-    <div>
-      <HeroSection />
+    <div className="flex min-h-screen w-full items-center justify-center">
+      <GooeyEffect />
     </div>
   )
 }
