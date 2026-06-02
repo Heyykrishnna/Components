@@ -1,5 +1,5 @@
-import React, {useState} from 'react'
-import { motion, useMotionValue, useTransform } from 'motion/react'
+import { useState } from 'react'
+import { animate, motion, useMotionValue, useTransform } from 'motion/react'
 
 
 const Initial_Stack = [
@@ -34,7 +34,16 @@ const DraggableCard = () => {
     const [stack, setStack] = useState(Initial_Stack)
     return (
         <div className="relative flex h-96 w-80 items-center justify-center">
-            {stack.map((item, index) => <StackCard key={item.title} item={item} index={index} total={stack.length} onSendToBack={() => { }} /> )}
+            {stack.map((item, index) => 
+                <StackCard 
+                    key={item.title} 
+                    item={item} 
+                    index={index} 
+                    total={stack.length} 
+                    onSendToBack={
+                        index === 0 ? () => setStack((s) => [...s.slice(1), s[0]]) 
+                        : undefined
+                    } /> )}
         </div>
     )
 }
@@ -42,7 +51,7 @@ const DraggableCard = () => {
 const StackSpring = { type: "spring" as const, stiffness:380, damping: 32}
 
 
-const StackCard = ({item, index, total, onSendToBack}: {item: {title: string, description: string, src: string}, index: number, total: number, onSendToBack: () => void}) => {
+const StackCard = ({item, index, total, onSendToBack}: {item: {title: string, description: string, src: string}, index: number, total: number, onSendToBack?: () => void }) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-150, 150], [-12, 12])
     const isTop = index === 0;
@@ -55,6 +64,11 @@ const StackCard = ({item, index, total, onSendToBack}: {item: {title: string, de
             right: 150
         }}
         dragElastic={0.1}
+        onDragEnd={() => {
+            if (!isTop || !onSendToBack) return
+            onSendToBack();
+            animate(x, 0, StackSpring)
+        }}
         style={{
             zIndex: total - index,
             rotate,
