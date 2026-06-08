@@ -1,4 +1,21 @@
 import { motion } from 'motion/react'
+import { useLayoutEffect, useRef, useState } from 'react'
+
+type JunctionPoint = { x: number; y: number; angle: number }
+
+const pathPointToScreen = (path: SVGPathElement, length: number) => {
+  const pt = path.getPointAtLength(length)
+  const screenPt = path.ownerSVGElement!.createSVGPoint()
+  screenPt.x = pt.x
+  screenPt.y = pt.y
+  return screenPt.matrixTransform(path.getScreenCTM()!)
+}
+
+const getPathAngle = (path: SVGPathElement, length: number) => {
+  const a = pathPointToScreen(path, length - 8)
+  const b = pathPointToScreen(path, length + 8)
+  return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI
+}
 
 const RIGHT_TEXT = "Umm, hope your week has started well…I was talking to Cheyene earlier but reception was really bad and I think their going to handle the first part of the project, but I’m not totally sure. Also, I told the team the the new timeline should be ready by Friday, although it’s probably going to slip. There’s been a lot of back and forth and honestly the the whole thing’s been kind of chaotic, like nobody really knows what’s going on so can you check in with them and see if the notes from yesterday’s meeting were sent out, or if they’re still waiting. I think Cheyene mentioned it but didn’t confirm, and now I’m a little lost."
 const LEFT_TEXT = "Hope your week is off to a good start. I was talking to Cheyene earlier, but the reception was really bad. I think they’re going to handle the first part of the project, but I’m not totally sure. I also told the team the new timeline should be ready by Friday — although it might slip. There’s been a lot of back and forth, and honestly, the whole thing has been a bit chaotic. It feels like nobody really knows what’s going on. Can you check in with them and see if the notes from yesterday’s meeting were sent out, or if they’re still waiting? I think Cheyene mentioned it, but didn’t confirm — and now I’m a little lost!"
@@ -12,8 +29,37 @@ const WhisperedFlow = () => {
 }
 
 const HeroAnimation = () => {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [junction, setJunction] = useState<JunctionPoint | null>(null)
+
+    useLayoutEffect(() => {
+        const updateJunction = () => {
+            const container = containerRef.current
+            const firstPath = document.getElementById('first-curve') as SVGPathElement | null
+            const secondPath = document.getElementById('second-curve') as SVGPathElement | null
+            if (!container || !firstPath || !secondPath) return
+
+            const firstLen = firstPath.getTotalLength()
+            const secondLen = secondPath.getTotalLength()
+
+            const firstEnd = pathPointToScreen(firstPath, firstLen * 0.97)
+            const secondStart = pathPointToScreen(secondPath, secondLen * 0.04)
+
+            const rect = container.getBoundingClientRect()
+            const x = (firstEnd.x + secondStart.x) / 2 - rect.left
+            const y = (firstEnd.y + secondStart.y) / 2 - rect.top
+            const angle = getPathAngle(firstPath, firstLen * 0.97)
+
+            setJunction({ x, y, angle })
+        }
+
+        updateJunction()
+        window.addEventListener('resize', updateJunction)
+        return () => window.removeEventListener('resize', updateJunction)
+    }, [])
+
     return(
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden">
 
             <div className="absolute left-0 top-1/2 w-[min(58vw, 900px)] overflow-hidden -translate-y-[45%]">
                 <svg
@@ -47,9 +93,18 @@ const HeroAnimation = () => {
                 </svg>
             </div>
 
-            <div className="absolute left-1/2 top-[48%] z-10 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
-                <WaveformMarquee />
-            </div>
+            {junction && (
+                <div
+                    className="absolute z-10 pointer-events-auto"
+                    style={{
+                        left: junction.x,
+                        top: junction.y,
+                        transform: `translate(-60%, -60%)`,
+                    }}
+                >
+                    <WaveformMarquee />
+                </div>
+            )}
 
             <div className="absolute top-12 -right-120 w-[min(62vw, 780px)]">
                 <svg

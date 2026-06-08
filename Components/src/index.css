@@ -37,13 +37,27 @@
     transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-33.333%, 0, 0);
   }
 }
 
 .waveform-marquee-track {
-  animation: waveform-marquee 5s linear infinite;
+  animation: waveform-marquee 4s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+
+@keyframes stroke-trail {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -2080;
+  }
+}
+
+.whispered-stroke-trail {
+  animation: stroke-trail 6s linear infinite;
+  will-change: stroke-dashoffset;
 }
