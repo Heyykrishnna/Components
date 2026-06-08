@@ -1,13 +1,10 @@
 // import HeroSection from './components/Hero-Section'
 // import GooeyEffect from './components/Gooey-Effect'
-import DraggableCard from './components/Draggable-Card'
+// import DraggableCard from './components/Draggable-Card'
+import WhisperedFlow from './components/Whispered-Flow'
 
 const App = () => {
-  return (
-    <div className="flex min-h-screen w-full items-center justify-center">
-      <DraggableCard />
-    </div>
-  )
+  return <WhisperedFlow />
 }
 
 export default App

@@ -31,3 +31,19 @@
     font-size: 16px;
   }
 }
+
+@keyframes waveform-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.waveform-marquee-track {
+  animation: waveform-marquee 5s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
