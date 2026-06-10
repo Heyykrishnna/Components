@@ -11,9 +11,10 @@ const pathPointToScreen = (path: SVGPathElement, length: number) => {
   return screenPt.matrixTransform(path.getScreenCTM()!)
 }
 
-const getPathAngle = (path: SVGPathElement, length: number) => {
-  const a = pathPointToScreen(path, length - 8)
-  const b = pathPointToScreen(path, length + 8)
+const getPathAngle = (path: SVGPathElement, length: number, totalLength: number) => {
+  const delta = Math.min(12, totalLength * 0.02)
+  const a = pathPointToScreen(path, Math.max(0, length - delta))
+  const b = pathPointToScreen(path, Math.min(totalLength, length + delta))
   return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI
 }
 
@@ -48,7 +49,7 @@ const HeroAnimation = () => {
             const rect = container.getBoundingClientRect()
             const x = (firstEnd.x + secondStart.x) / 2 - rect.left
             const y = (firstEnd.y + secondStart.y) / 2 - rect.top
-            const angle = getPathAngle(firstPath, firstLen * 0.97)
+            const angle = getPathAngle(firstPath, firstLen * 0.97, firstLen)
 
             setJunction({ x, y, angle })
         }
