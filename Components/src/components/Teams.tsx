@@ -316,7 +316,7 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
               </span>
 
               <span
-                className="rounded-full bg-white text-black font-semibold uppercase shrink-0"
+                className="rounded-full bg-white text-black hidden sm:block font-semibold uppercase shrink-0"
                 style={{
                   fontSize: 'clamp(0.55rem, 1.4vw, 0.52rem)',
                   letterSpacing: '0.08em',
