@@ -1,5 +1,5 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react'
 
 interface TeamMember {
   id: number
@@ -121,12 +121,41 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
   const active = activeId === member.id
   const displayName = member.name.split(' ')[0].toUpperCase()
 
-  function handleMouseEnter() {
-    if (!isCoarse) setActiveId(member.id)
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springX = useSpring(mouseX, { stiffness: 160, damping: 22 })
+  const springY = useSpring(mouseY, { stiffness: 160, damping: 22 })
+  const rotateX = useTransform(springY, [-0.5, 0.5], ['4deg', '-4deg'])
+  const rotateY = useTransform(springX, [-0.5, 0.5], ['-4deg', '4deg'])
+
+  function resetTilt() {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+
+  function updateTilt(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (!rect) return
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+
+  function handleMouseEnter(e: React.MouseEvent<HTMLDivElement>) {
+    if (isCoarse) return
+    setActiveId(member.id)
+    updateTilt(e)
+  }
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (isCoarse) return
+    updateTilt(e)
   }
 
   function handleMouseLeave() {
-    if (!isCoarse) setActiveId(null)
+    if (!isCoarse) {
+      setActiveId(null)
+      resetTilt()
+    }
   }
 
   function handleTap(e: React.MouseEvent | React.TouchEvent) {
@@ -154,7 +183,7 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.48, delay: index * 0.055, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <div
+      <motion.div
         ref={cardRef}
         className="relative overflow-hidden bg-neutral-900 select-none"
         style={{
@@ -165,13 +194,24 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
             ? '1px solid rgba(255,255,255,0.28)'
             : '1px solid rgba(255,255,255,0.14)',
           boxShadow: active
-            ? '0 0 0 1px rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.35)'
+            ? '0 0 0 1px rgba(255,255,255,0.06), 0 18px 48px rgba(0,0,0,0.42)'
             : '0 0 0 1px rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.2)',
+          transformStyle: 'preserve-3d',
+          transformPerspective: 900,
+          rotateX: !isCoarse && active ? rotateX : 0,
+          rotateY: !isCoarse && active ? rotateY : 0,
           transitionProperty: 'border-color, box-shadow',
           transitionDuration: '500ms',
           transitionTimingFunction: EASE,
         }}
+        animate={{
+          y: !isCoarse && active ? -10 : 0,
+          scale: !isCoarse && active ? 1.028 : 1,
+        }}
+        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        whileTap={isCoarse ? { scale: 0.98 } : undefined}
         onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleTap}
         onTouchStart={isCoarse ? (e) => e.stopPropagation() : undefined}
@@ -288,7 +328,7 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
             </div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
