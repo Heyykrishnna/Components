@@ -498,40 +498,6 @@ export default function Teams() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <motion.div
-        className="flex items-center justify-between flex-wrap gap-2"
-        style={{
-          marginTop: 'clamp(32px, 5vw, 56px)',
-          paddingTop: 'clamp(20px, 3vw, 32px)',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <p
-          className="text-white/25 uppercase tracking-widest"
-          style={{ fontSize: 'clamp(8.5px, 1.3vw, 11px)' }}
-        >
-          {filtered.length} member{filtered.length !== 1 ? 's' : ''} · {activeTab}
-        </p>
-        <div className="flex gap-1.5 items-center">
-          {TABS.slice(0, 4).map((loc) => (
-            <button
-              key={loc}
-              onClick={() => handleTabChange(loc)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: '6px',
-                height: '6px',
-                background: activeTab === loc ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.12)',
-              }}
-              aria-label={`Switch to ${loc}`}
-            />
-          ))}
-        </div>
-      </motion.div>
     </div>
   )
 }
