@@ -268,7 +268,7 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
                 className="text-white font-medium uppercase tracking-wide"
                 style={{
                   fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-                  fontSize: 'clamp(0.75rem, 2vw, 1.1rem)',
+                  fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
                   letterSpacing: '0.06em',
                 }}
               >
@@ -278,9 +278,9 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
               <span
                 className="rounded-full bg-white text-black font-semibold uppercase shrink-0"
                 style={{
-                  fontSize: 'clamp(0.55rem, 1.4vw, 0.72rem)',
+                  fontSize: 'clamp(0.55rem, 1.4vw, 0.52rem)',
                   letterSpacing: '0.08em',
-                  padding: 'clamp(5px, 1vw, 7px) clamp(10px, 2vw, 16px)',
+                  padding: 'clamp(5px, 1vw, 2px) clamp(10px, 2vw, 16px)',
                 }}
               >
                 {formatRoleBadge(member.role)}
