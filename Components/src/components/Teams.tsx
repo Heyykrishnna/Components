@@ -1,5 +1,5 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from 'react'
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 
 interface TeamMember {
   id: number
@@ -76,14 +76,17 @@ const TEAM_MEMBERS: TeamMember[] = [
 const TABS = ['Global', 'Bay Area', 'London', 'Bangalore', 'Emeritus']
 const EASE = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
 
-function stagger(delayMs: number): React.CSSProperties {
-  return {
-    transitionProperty: 'opacity, transform',
-    transitionDuration: '480ms',
-    transitionTimingFunction: EASE,
-    transitionDelay: `${delayMs}ms`,
-    willChange: 'opacity, transform',
-  }
+function useIsCoarsePointer() {
+  const [isCoarse] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  )
+  return isCoarse
+}
+
+function formatRoleBadge(role: string) {
+  const words = role.trim().split(/\s+/)
+  if (words.length > 1) return words.map((w) => w[0]).join('').toUpperCase()
+  return role.toUpperCase()
 }
 
 function MetaLabel({ children }: { children: React.ReactNode }) {
@@ -94,11 +97,15 @@ function MetaLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function useIsCoarsePointer() {
-  const [isCoarse] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
-  )
-  return isCoarse
+function detailStagger(delayMs: number, active: boolean): React.CSSProperties {
+  return {
+    opacity: active ? 1 : 0,
+    transform: active ? 'translateY(0)' : 'translateY(8px)',
+    transitionProperty: 'opacity, transform',
+    transitionDuration: '420ms',
+    transitionTimingFunction: EASE,
+    transitionDelay: active ? `${delayMs}ms` : '0ms',
+  }
 }
 
 interface CardProps {
@@ -112,36 +119,14 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
   const isCoarse = useIsCoarsePointer()
   const cardRef = useRef<HTMLDivElement>(null)
   const active = activeId === member.id
-
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  const springX = useSpring(mouseX, { stiffness: 150, damping: 24 })
-  const springY = useSpring(mouseY, { stiffness: 150, damping: 24 })
-  const rotateX = useTransform(springY, [-0.5, 0.5], ['3.5deg', '-3.5deg'])
-  const rotateY = useTransform(springX, [-0.5, 0.5], ['-3.5deg', '3.5deg'])
-
-  function resetTilt() {
-    mouseX.set(0)
-    mouseY.set(0)
-  }
-
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (isCoarse) return
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    mouseX.set((e.clientX - rect.left) / rect.width - 0.5)
-    mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
-  }
+  const displayName = member.name.split(' ')[0].toUpperCase()
 
   function handleMouseEnter() {
     if (!isCoarse) setActiveId(member.id)
   }
 
   function handleMouseLeave() {
-    if (!isCoarse) {
-      setActiveId(null)
-      resetTilt()
-    }
+    if (!isCoarse) setActiveId(null)
   }
 
   function handleTap(e: React.MouseEvent | React.TouchEvent) {
@@ -163,197 +148,147 @@ function MemberCard({ member, index, activeId, setActiveId }: CardProps) {
     return () => document.removeEventListener('touchstart', handleOutside)
   }, [active, isCoarse, setActiveId])
 
-  const scrimBg = `linear-gradient(160deg, ${member.accentColor} 0%, rgba(0,0,0,0.04) 45%, rgba(0,0,0,0.86) 100%)`
-
   return (
     <motion.div
-      className="flex flex-col"
-      style={{ cursor: isCoarse ? 'pointer' : 'default' }}
       initial={{ opacity: 0, y: 22 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.48, delay: index * 0.055, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <motion.div
+      <div
         ref={cardRef}
         className="relative overflow-hidden bg-neutral-900 select-none"
         style={{
           aspectRatio: '3 / 4',
-          isolation: 'isolate',
-          borderRadius: 'clamp(10px, 2vw, 18px)',
-          rotateX: (!isCoarse && active) ? rotateX : 0,
-          rotateY: (!isCoarse && active) ? rotateY : 0,
-          transformStyle: 'preserve-3d',
-          transformPerspective: 900,
+          cursor: isCoarse ? 'pointer' : 'default',
+          borderRadius: 'clamp(16px, 3vw, 28px)',
+          border: active
+            ? '1px solid rgba(255,255,255,0.28)'
+            : '1px solid rgba(255,255,255,0.14)',
+          boxShadow: active
+            ? '0 0 0 1px rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.35)'
+            : '0 0 0 1px rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.2)',
+          transitionProperty: 'border-color, box-shadow',
+          transitionDuration: '500ms',
+          transitionTimingFunction: EASE,
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        onMouseMove={handleMouseMove}
         onClick={handleTap}
         onTouchStart={isCoarse ? (e) => e.stopPropagation() : undefined}
-        whileHover={!isCoarse ? { scale: 1.014 } : {}}
-        whileTap={isCoarse ? { scale: 0.98 } : {}}
-        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         <img
           src={member.image}
           alt={member.name}
           className="absolute inset-0 w-full h-full object-cover object-top"
           draggable={false}
-          style={{
-            transitionProperty: 'filter, transform',
-            transitionDuration: '700ms',
-            transitionTimingFunction: EASE,
-            willChange: 'filter, transform',
-            backfaceVisibility: 'hidden',
-            filter: active ? 'blur(6px) brightness(0.6)' : 'blur(0px) brightness(1)',
-            transform: active ? 'scale(1.06)' : 'scale(1)',
-          }}
         />
 
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.42) 0%, transparent 48%)',
-          }}
-        />
-
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: scrimBg,
-            opacity: active ? 1 : 0,
-            transitionProperty: 'opacity',
-            transitionDuration: '500ms',
-            transitionTimingFunction: EASE,
-            willChange: 'opacity',
-          }}
-        />
-        <div
-          className="absolute inset-0 flex flex-col justify-between pointer-events-none"
-          style={{ padding: 'clamp(10px, 2vw, 22px)' }}
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 overflow-hidden"
+          initial={false}
+          animate={{ height: active ? '100%' : '16%' }}
+          transition={{ duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <h2
-            className="text-white font-medium leading-tight tracking-tight drop-shadow-lg"
+          <div
+            className="absolute inset-0"
             style={{
-              fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-              fontSize: 'clamp(0.82rem, 2vw, 1.5rem)',
-              opacity: active ? 1 : 0,
-              transform: active ? 'translateY(0px)' : 'translateY(-14px)',
-              ...stagger(0),
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              background: active
+                ? 'rgba(40,40,40,0.45)'
+                : 'rgba(30,30,30,0.38)',
+              borderTop: active ? 'none' : '1px solid rgba(255,255,255,0.12)',
+              transitionProperty: 'background, border-color',
+              transitionDuration: '500ms',
+              transitionTimingFunction: EASE,
+            }}
+          />
+
+          <div
+            className="relative h-full flex flex-col justify-end pointer-events-none"
+            style={{
+              padding: 'clamp(10px, 2vw, 18px) clamp(14px, 3vw, 22px)',
             }}
           >
-            {member.name}
-          </h2>
-
-          <div className="flex flex-col pointer-events-auto" style={{ gap: 'clamp(6px, 1.2vw, 14px)' }}>
-
             <div
-              className="grid grid-cols-2"
+              className="flex flex-col overflow-hidden"
               style={{
-                gap: 'clamp(4px, 1vw, 10px)',
-                opacity: active ? 1 : 0,
-                transform: active ? 'translateY(0px)' : 'translateY(-10px)',
-                ...stagger(60),
+                gap: 'clamp(8px, 1.5vw, 14px)',
+                flex: active ? '1 1 auto' : '0 0 0',
+                maxHeight: active ? '100%' : 0,
+                marginBottom: active ? 'auto' : 0,
+                paddingTop: active ? 'clamp(4px, 1vw, 10px)' : 0,
+                ...detailStagger(80, active),
               }}
             >
-              <div className="flex flex-col gap-0.5">
-                <MetaLabel>BASED IN</MetaLabel>
-                <span className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.5vw, 13px)' }}>
-                  {member.location}
-                </span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <MetaLabel>SPECIALITY</MetaLabel>
-                <span className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.5vw, 13px)' }}>
-                  {member.specialty}
-                </span>
-              </div>
-            </div>
-
-            <div
-              className="flex flex-col gap-0.5"
-              style={{
-                opacity: active ? 1 : 0,
-                transform: active ? 'translateY(0px)' : 'translateY(-8px)',
-                ...stagger(115),
-              }}
-            >
-              <MetaLabel>FOCUS</MetaLabel>
-              {member.focus.map((f) => (
-                <span key={f} className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.4vw, 12.5px)' }}>
-                  {f}
-                </span>
-              ))}
-            </div>
-
-            <div
-              className="flex items-center justify-between"
-              style={{
-                opacity: active ? 1 : 0,
-                transform: active ? 'translateY(0px)' : 'translateY(-6px)',
-                ...stagger(170),
-              }}
-            >
-              <button
-                aria-label={`View ${member.name}`}
-                className="rounded-full flex items-center justify-center text-white backdrop-blur-md pointer-events-auto"
+              <h2
+                className="text-white font-bold leading-tight tracking-tight"
                 style={{
-                  width: 'clamp(28px, 3.5vw, 40px)',
-                  height: 'clamp(28px, 3.5vw, 40px)',
-                  background: `rgba(${member.accentRGB}, 0.65)`,
-                  border: `1px solid rgba(${member.accentRGB}, 0.8)`,
-                  transitionProperty: 'background, transform',
-                  transitionDuration: '180ms',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = `rgba(${member.accentRGB}, 0.95)`
-                  el.style.transform = 'scale(1.1)'
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLButtonElement
-                  el.style.background = `rgba(${member.accentRGB}, 0.65)`
-                  el.style.transform = 'scale(1)'
+                  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
+                  fontSize: 'clamp(0.9rem, 2.2vw, 1.35rem)',
+                  ...detailStagger(60, active),
                 }}
               >
-                <svg
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  aria-hidden="true"
-                  style={{ width: 'clamp(11px, 1.5vw, 15px)', height: 'clamp(11px, 1.5vw, 15px)' }}
-                >
-                  <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+                {member.name}
+              </h2>
+
+              <div
+                className="grid grid-cols-2"
+                style={{
+                  gap: 'clamp(6px, 1.2vw, 12px)',
+                  ...detailStagger(120, active),
+                }}
+              >
+                <div className="flex flex-col gap-0.5">
+                  <MetaLabel>BASED IN</MetaLabel>
+                  <span className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.5vw, 13px)' }}>
+                    {member.location}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <MetaLabel>SPECIALITY</MetaLabel>
+                  <span className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.5vw, 13px)' }}>
+                    {member.specialty}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-0.5" style={detailStagger(180, active)}>
+                <MetaLabel>FOCUS</MetaLabel>
+                {member.focus.map((f) => (
+                  <span key={f} className="text-white font-light leading-snug" style={{ fontSize: 'clamp(9px, 1.4vw, 12.5px)' }}>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between shrink-0">
+              <span
+                className="text-white font-medium uppercase tracking-wide"
+                style={{
+                  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
+                  fontSize: 'clamp(0.75rem, 2vw, 1.1rem)',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                {displayName}
+              </span>
 
               <span
-                className="text-white/40 font-medium uppercase"
-                style={{ fontSize: 'clamp(7px, 1vw, 8.5px)', letterSpacing: '0.13em' }}
+                className="rounded-full bg-white text-black font-semibold uppercase shrink-0"
+                style={{
+                  fontSize: 'clamp(0.55rem, 1.4vw, 0.72rem)',
+                  letterSpacing: '0.08em',
+                  padding: 'clamp(5px, 1vw, 7px) clamp(10px, 2vw, 16px)',
+                }}
               >
-                {member.role}
+                {formatRoleBadge(member.role)}
               </span>
             </div>
           </div>
-        </div>
-      </motion.div>
-
-      <p
-        className="truncate"
-        style={{
-          fontFamily: "'Inter', system-ui, sans-serif",
-          fontSize: 'clamp(10px, 1.4vw, 13px)',
-          marginTop: 'clamp(6px, 1vw, 10px)',
-          paddingLeft: '2px',
-          letterSpacing: '0.02em',
-          color: active ? '#ffffff' : '#6b7280',
-          transitionProperty: 'color',
-          transitionDuration: '300ms',
-          transitionTimingFunction: EASE,
-        }}
-      >
-        {member.name}
-      </p>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
